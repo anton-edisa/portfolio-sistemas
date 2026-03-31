@@ -1,0 +1,40 @@
+---
+- name: Configurar servidores web
+  hosts: webservers
+  become: yes
+
+  vars_files:
+    - secrets.yml
+
+  tasks:
+
+    - name: Instalar nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Iniciar y habilitar nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Crear pagina index.html
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <html>
+          <head><title>Pagina de anton</title></head>
+          <body>
+          <h1>Servidor {{ inventory_hostname }}</h1>
+          </body>
+          </html>
+      notify: Recargar nginx
+
+  handlers:
+
+    - name: Recargar nginx
+      service:
+        name: nginx
+        state: reloaded

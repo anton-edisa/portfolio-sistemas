@@ -1,0 +1,27 @@
+# Variables de entorno — NUNCA subir credenciales
+.env
+*.env
+
+# Vagrant — no subir la VM, solo el Vagrantfile
+.vagrant/
+
+# Terraform — estado local con posibles contraseñas
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# SSH — claves privadas
+*.pem
+id_rsa*
+id_ed25519*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+EOF

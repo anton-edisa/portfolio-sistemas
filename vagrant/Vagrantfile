@@ -1,0 +1,16 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+
+  config.vm.define "vm_web" do |vm_web|
+    vm_web.vm.hostname = "vm-web"
+    vm_web.vm.network "private_network", ip: "192.168.56.10"
+    vm_web.vm.provider "virtualbox" do |vb| vb.memory = 1024; vb.cpus = 1; end
+    vm_web.vm.provision "shell", inline: "apt-get update && apt-get install -y nginx"
+  end
+  config.vm.define "vm_db" do |vm_db|
+    vm_db.vm.hostname = "vm-db"
+    vm_db.vm.network "private_network", ip: "192.168.56.11"
+    vm_db.vm.provider "virtualbox" do |vb| vb.memory = 2048; vb.cpus = 2; end
+    vm_db.vm.provision "shell", inline: "apt-get update && apt-get install -y mariadb-server"
+  end
+end
