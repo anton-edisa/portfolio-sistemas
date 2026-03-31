@@ -61,7 +61,7 @@ jobs:
       - name: Buscar posibles contraseñas hardcodeadas
         run: |
           echo "Buscando patrones de contraseñas..."
-          if grep -r "password\s*=\s*['\"][^${\\'\"]\+['\"]" --include="*.yml" --include="*.yaml" --include="*.tf" .; then
+          if grep -r "password\s*=\s*['\"][^\${\\'\"]\+['\"]" --include="*.yml" --include="*.yaml" --include="*.tf" .; then
             echo "⚠️  Posibles contraseñas hardcodeadas encontradas — revisar"
           else
             echo "✅ No se encontraron contraseñas hardcodeadas"
