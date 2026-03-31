@@ -1,0 +1,122 @@
+name: Validar Portfolio
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  estructura:
+    name: Verificar estructura del repositorio
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verificar carpetas obligatorias
+        run: |
+          echo "=== Verificando estructura del repositorio ==="
+          ERRORES=0
+
+          for carpeta in docker ansible vagrant terraform scripts/bash scripts/powershell; do
+            if [ -d "$carpeta" ]; then
+              echo "✅ $carpeta"
+            else
+              echo "❌ Falta la carpeta: $carpeta"
+              ERRORES=$((ERRORES + 1))
+            fi
+          done
+
+          exit $ERRORES
+
+      - name: Verificar ficheros clave
+        run: |
+          ERRORES=0
+          for fichero in docker/docker-compose.yml docker/.env.example .gitignore README.md; do
+            if [ -f "$fichero" ]; then
+              echo "✅ $fichero"
+            else
+              echo "❌ Falta: $fichero"
+              ERRORES=$((ERRORES + 1))
+            fi
+          done
+          exit $ERRORES
+
+  seguridad:
+    name: Verificar que no hay secretos expuestos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verificar que .env no está en el repo
+        run: |
+          if git ls-files --error-unmatch docker/.env 2>/dev/null; then
+            echo "❌ PELIGRO: docker/.env está en el repositorio"
+            exit 1
+          else
+            echo "✅ .env no está trackeado — seguro"
+          fi
+
+      - name: Buscar posibles contraseñas hardcodeadas
+        run: |
+          echo "Buscando patrones de contraseñas..."
+          if grep -r "password\s*=\s*['\"][^${\\'\"]\+['\"]" --include="*.yml" --include="*.yaml" --include="*.tf" .; then
+            echo "⚠️  Posibles contraseñas hardcodeadas encontradas — revisar"
+          else
+            echo "✅ No se encontraron contraseñas hardcodeadas"
+          fi
+
+  docker:
+    name: Validar Docker Compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Docker Compose
+        run: docker compose version
+
+      - name: Crear .env de prueba
+        run: |
+          cp docker/.env.example docker/.env
+          # Reemplazar "cambia_esto" por valores de prueba para CI
+          sed -i 's/cambia_esto/TestPassword123/g' docker/.env
+
+      - name: Validar sintaxis docker-compose.yml
+        run: |
+          cd docker/
+          docker compose config --quiet && echo "✅ docker-compose.yml válido"
+
+      - name: Verificar profiles definidos
+        run: |
+          cd docker/
+          for profile in web monitoring zabbix database; do
+            if docker compose config --profiles | grep -q "$profile"; then
+              echo "✅ Profile '$profile' definido"
+            else
+              echo "❌ Falta el profile: $profile"
+              exit 1
+            fi
+          done
+
+  scripts:
+    name: Validar scripts de PowerShell y Bash
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verificar sintaxis scripts bash
+        run: |
+          for script in scripts/bash/*.sh; do
+            if [ -f "$script" ]; then
+              bash -n "$script" && echo "✅ $script — sintaxis OK"
+            fi
+          done
+
+      - name: Verificar scripts PowerShell existen
+        run: |
+          for script in scripts/powershell/*.ps1; do
+            if [ -f "$script" ]; then
+              echo "✅ Encontrado: $script"
+            fi
+          done

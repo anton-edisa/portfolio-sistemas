@@ -1,0 +1,159 @@
+# ══════════════════════════════════════════════════════════════
+# Stack completo de prácticas de sistemas
+# 
+# Arrancar por grupos (profiles):
+#   docker compose --profile web up -d        → Nginx + WordPress + MariaDB
+#   docker compose --profile monitoring up -d → Prometheus + Grafana + Node Exporter
+#   docker compose --profile zabbix up -d     → Zabbix Server + Web + Agent
+#   docker compose --profile database up -d   → Oracle 23ai Free
+#   docker compose up -d                      → Solo servicios sin profile (ninguno)
+# ══════════════════════════════════════════════════════════════
+
+services:
+
+  # ── PROFILE: web ─────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: portfolio-nginx
+    profiles: [web]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - wordpress
+    restart: unless-stopped
+
+  wordpress:
+    image: wordpress:6-php8.2-fpm-alpine
+    container_name: portfolio-wordpress
+    profiles: [web]
+    environment:
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+    volumes:
+      - wordpress_data:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: mariadb:11
+    container_name: portfolio-mariadb
+    profiles: [web]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # ── PROFILE: monitoring ───────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: portfolio-prometheus
+    profiles: [monitoring]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: portfolio-grafana
+    profiles: [monitoring]
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: portfolio-node-exporter
+    profiles: [monitoring]
+    ports:
+      - "9100:9100"
+    restart: unless-stopped
+
+  # ── PROFILE: zabbix ──────────────────────────────────────
+  zabbix-db:
+    image: mariadb:11
+    container_name: portfolio-zabbix-db
+    profiles: [zabbix]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ZABBIX_DB_PASSWORD}
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: ${ZABBIX_DB_PASSWORD}
+    volumes:
+      - zabbix_db_data:/var/lib/mysql
+    restart: unless-stopped
+
+  zabbix-server:
+    image: zabbix/zabbix-server-mysql:alpine-6.4-latest
+    container_name: portfolio-zabbix-server
+    profiles: [zabbix]
+    ports:
+      - "10051:10051"
+    environment:
+      DB_SERVER_HOST: zabbix-db
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: ${ZABBIX_DB_PASSWORD}
+    depends_on:
+      - zabbix-db
+    restart: unless-stopped
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest
+    container_name: portfolio-zabbix-web
+    profiles: [zabbix]
+    ports:
+      - "8080:8080"
+    environment:
+      DB_SERVER_HOST: zabbix-db
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: ${ZABBIX_DB_PASSWORD}
+      ZBX_SERVER_HOST: zabbix-server
+      PHP_TZ: Europe/Madrid
+    depends_on:
+      - zabbix-server
+    restart: unless-stopped
+
+  # ── PROFILE: database ─────────────────────────────────────
+  oracle:
+    image: gvenzl/oracle-free:23-slim
+    container_name: portfolio-oracle
+    profiles: [database]
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD}
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+    restart: unless-stopped
+
+volumes:
+  wordpress_data:
+  mariadb_data:
+  prometheus_data:
+  grafana_data:
+  zabbix_db_data:
+  oracle_data:
