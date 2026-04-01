@@ -1,5 +1,7 @@
 # Pruebas de scripts de despliegue de Libra ERP con terraform
 
+- Uso: terraform plan|apply|destroy  -var-file="secrets.tfvars"
+
 ## Versiones
 
 * v0.1
