@@ -155,6 +155,8 @@ resource "vsphere_virtual_machine" "vms" {
         ipv4_netmask = var.ipv4_netmask
       }
 
+      dns_server_list = var.dns_servers
+      dns_suffix_list = var.dns_suffixes
       ipv4_gateway = var.ipv4_gateway
     }
   }

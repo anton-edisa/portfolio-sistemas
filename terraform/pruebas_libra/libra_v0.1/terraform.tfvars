@@ -21,6 +21,8 @@ network_name    = "VM Network"
 vm_folder       = "Anton - Ourense/Libra"
 ipv4_gateway    = "172.16.107.1"
 ipv4_netmask = 24
+dns_servers  = ["8.8.8.8", "1.1.1.1"]
+dns_suffixes = ["local"]
 
 
 # ==========================

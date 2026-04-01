@@ -65,6 +65,17 @@ variable "ipv4_netmask" {
   type        = number
 }
 
+variable "dns_servers" {
+  description = "Lista de servidores DNS para todas las VMs"
+  type        = list(string)
+}
+
+variable "dns_suffixes" {
+  description = "Lista de sufijos DNS para todas las VMs"
+  type        = list(string)
+  default     = []
+}
+
 # ==============================================================
 # Rutas de las plantillas
 # ==============================================================
