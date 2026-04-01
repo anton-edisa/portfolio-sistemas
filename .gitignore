@@ -7,7 +7,7 @@
 
 # Terraform — estado local con posibles contraseñas
 secrets.tfvars
-*.tfstate
+*.tfstate*
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
