@@ -3,7 +3,7 @@
     Importa usuarios en Active Directory desde un fichero CSV.
 
 .EXAMPLE
-    .\ad-importar-csv.ps1 -FicheroCSV ".\usuarios-ejemplo.csv" -Servidor "IP-DC" -Credential $cred
+    .\ad-importar-csv.ps1 -FicheroCSV ".\usuarios-ejemplo.csv" -Servidor "IP-DC" -Credencial $cred
 #>
 
 param(
@@ -14,7 +14,7 @@ param(
     [string]$Servidor = "IP-DE-TU-DC",
 
     [Parameter(Mandatory=$false)]
-    [System.Management.Automation.PSCredential]$Credential = $null
+    [System.Management.Automation.PSCredential]$Credencial = $null
 )
 
 Import-Module ActiveDirectory
@@ -25,7 +25,7 @@ if (-not (Test-Path $FicheroCSV)) {
     exit 1
 }
 
-$dominio   = (Get-ADDomain -Server $Servidor -Credential $Credential).DistinguishedName
+$dominio   = (Get-ADDomain -Server $Servidor -Credential $Credencial).DistinguishedName
 $passTemp  = ConvertTo-SecureString "Practica2024!" -AsPlainText -Force
 $usuarios  = Import-Csv -Path $FicheroCSV
 $creados   = 0
@@ -37,7 +37,7 @@ foreach ($u in $usuarios) {
     $rutaOU = "OU=$($u.OU),$dominio"
 
     # Saltar si ya existe
-    if (Get-ADUser -Filter "SamAccountName -eq '$($u.Usuario)'" -Server $Servidor -Credential $Credential -ErrorAction SilentlyContinue) {
+    if (Get-ADUser -Filter "SamAccountName -eq '$($u.Usuario)'" -Server $Servidor -Credential $Credencial -ErrorAction SilentlyContinue) {
         Write-Warning "  [OMITIDO]  $($u.Usuario) ya existe - omitido"
         continue
     }
@@ -45,7 +45,7 @@ foreach ($u in $usuarios) {
     try {
         New-ADUser `
             -Server             $Servidor `
-            -Credential         $Credential `
+            -Credential         $Credencial `
             -Name               "$($u.Nombre) $($u.Apellido)" `
             -GivenName          $u.Nombre `
             -Surname            $u.Apellido `
