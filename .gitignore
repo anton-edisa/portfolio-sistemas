@@ -11,6 +11,8 @@ secrets.tfvars
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
+# Pruebas de despliegue de Libra con Terraform
+libra*/
 
 # SSH — claves privadas
 *.pem
