@@ -19,7 +19,7 @@
     Departamento del usuario (ej: "Informática")
 
 .EXAMPLE
-    .\ad-crear-usuario.ps1 -Nombre "Juan García" -Usuario "jgarcia" -OU "Usuarios" -Departamento "Informatica" -Servidor "IP-DC" -Credential $cred
+    .\ad-crear-usuario.ps1 -Nombre "Juan García" -Usuario "jgarcia" -OU "Usuarios" -Departamento "Informatica" -Servidor "IP-DC" -Credencial $cred
 #>
 
 param(
@@ -39,7 +39,7 @@ param(
     [string]$Servidor = "IP-DE-TU-DC",
 
     [Parameter(Mandatory=$false)]
-    [System.Management.Automation.PSCredential]$Credential = $null
+    [System.Management.Automation.PSCredential]$Credencial = $null
 )
 
 # ── Importar módulo ────────────────────────────────────────
@@ -51,14 +51,14 @@ $nombre     = $partes[0]
 $apellido   = if ($partes.Count -gt 1) { $partes[1..($partes.Count-1)] -join " " } else { "" }
 
 # ── Ruta de la OU ──────────────────────────────────────────
-$dominio    = (Get-ADDomain -Server $Servidor -Credential $Credential).DistinguishedName
+$dominio    = (Get-ADDomain -Server $Servidor -Credential $Credencial).DistinguishedName
 $rutaOU     = "OU=$OU,$dominio"
 
 # ── Contraseña temporal ────────────────────────────────────
 $passTemp   = ConvertTo-SecureString "Practica2024!" -AsPlainText -Force
 
 # ── Verificar que el usuario no existe ya ─────────────────
-if (Get-ADUser -Filter "SamAccountName -eq '$Usuario'" -Server $Servidor -Credential $Credential -ErrorAction SilentlyContinue) {
+if (Get-ADUser -Filter "SamAccountName -eq '$Usuario'" -Server $Servidor -Credential $Credencial -ErrorAction SilentlyContinue) {
     Write-Warning "El usuario '$Usuario' ya existe en el dominio."
     exit 1
 }
