@@ -1,6 +1,6 @@
 # Configuración de Cluster de Kubernetes en OEL
+## Con playbooks de Ansible y manualmente
  
-> Con playbooks de Ansible y manualmente  
 > **Autor:** Antón Moncho — 25 de mayo de 2026
  
 ---
