@@ -82,6 +82,7 @@ firewall-cmd --permanent --add-port=2379/tcp
 firewall-cmd --permanent --add-port=2380/tcp
 firewall-cmd --permanent --add-port=8472/udp
 firewall-cmd --permanent --add-port=10250/tcp
+firewall-cmd --permanent --add-port=10255/tcp
 firewall-cmd --reload
 ```
  
@@ -112,6 +113,7 @@ firewall-cmd --permanent --add-port=2379/tcp
 firewall-cmd --permanent --add-port=2380/tcp
 firewall-cmd --permanent --add-port=8472/udp
 firewall-cmd --permanent --add-port=10250/tcp
+firewall-cmd --permanent --add-port=10255/tcp
 firewall-cmd --reload
 ```
  
@@ -134,7 +136,17 @@ curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.1+k3s1 sh -s - server \
 ---
  
 ### Instalación y unión al clúster de los WORKERS
+
+**Abrir puertos necesarios en firewalld:**
  
+```bash
+firewall-cmd --permanent --add-port=8472/udp
+firewall-cmd --permanent --add-port=10250/tcp
+firewall-cmd --permanent --add-port=10255/tcp
+firewall-cmd --reload
+```
+ 
+**Lanzar instalación de k3s como workers:**
 ```bash
 curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.29.1+k3s1 \
   K3S_URL=https://<IP_MASTER>:6443 \
